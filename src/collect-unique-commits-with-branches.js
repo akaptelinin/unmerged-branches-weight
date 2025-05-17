@@ -5,9 +5,8 @@ const { execSync } = require('child_process');
  * @param {string} repoPath - Path to the Git repository
  * @returns {Promise<Array<{commit: string, branches?: string[]}>>}
  */
-module.exports = async function collectUniqueCommitsWithBranches(repoPath) {
+module.exports = async function collectUniqueCommitsWithBranches(repoPath, defaultBr) {
   const start = Date.now();
-  const MASTER = 'master';
   const commitMap = new Map();
 
   // Git options
@@ -31,7 +30,7 @@ module.exports = async function collectUniqueCommitsWithBranches(repoPath) {
     console.log(`${elapsed}s elapsed\n`);
 
     const out = execSync(
-      `git rev-list ${ref} --not ${MASTER} --no-merges`,
+      `git rev-list ${ref} --not ${defaultBr} --no-merges`,
       gitLarge
     ).trim();
 

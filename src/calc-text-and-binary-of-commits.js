@@ -1,15 +1,18 @@
+const fs = require('fs');
+const path = require('path');
 const { spawnSync } = require('child_process');
 
 /**
  * Calculate text and binary sizes for a list of commits.
  * @param {Array<{commit: string, branches?: string[]}>} commits
  * @param {string} repoPath - Path to the Git repository
+ * @param {string} reportDir - Directory to write report files
  * @returns {Promise<Array<Object>>}
  */
-module.exports = async function calcTextAndBinaryOfCommits(commits, repoPath) {
-  const getAvgCompressedSize = (textSize, binarySize) => Math.floor(textSize * 0.2 + binarySize * 0.8) / 1000000;
-  const getAvgCompressedSizeMBText = (textSize, binarySize) => {
-    const size = getAvgCompressedSize(textSize, binarySize);
+module.exports = async function calcTextAndBinaryOfCommits(commits, repoPath, reportDir) {
+  const getEstCompressedSize = (textSize, binarySize) => Math.floor(textSize * 0.2 + binarySize * 0.8);
+  const getEstCompressedSizeMBText = (textSize, binarySize) => {
+    const size = getEstCompressedSize(textSize, binarySize) / (1024 * 1024);
     if (size >= 0.1) return size.toFixed(1) + ' MB';
     if (size >= 0.01) return size.toFixed(2) + ' MB';
     return '0 MB';
@@ -52,18 +55,30 @@ module.exports = async function calcTextAndBinaryOfCommits(commits, repoPath) {
       }
     }
 
-    const avg = getAvgCompressedSize(textSize, binarySize);
-    const avgMB = getAvgCompressedSizeMBText(textSize, binarySize);
+    const est = getEstCompressedSize(textSize, binarySize);
+    const estMB = getEstCompressedSizeMBText(textSize, binarySize);
 
-    const result = { commit, avgCompressedSize: avg, avgCompressedSizeMB: avgMB, textSize, binarySize };
+    const result = { commit, estCompressedSize: est, estCompressedSizeMB: estMB, textSize, binarySize };
     if (branches) result.branches = branches;
 
-    console.log(` -> avgCompressedSize=${avgMB} text=${textSize}B binary=${binarySize}B`);
+    console.log(` -> estCompressedSize=${estMB} text=${textSize}B binary=${binarySize}B`);
     const elapsed = ((Date.now() - start) / 1000).toFixed(2);
     console.log(`${elapsed}s elapsed\n`);
     results.push(result);
   }
 
   console.log(`Done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
+
+  results.sort((a,b) => {
+    const diffCompressed = b.estCompressedSize - a.estCompressedSize;
+
+    if (diffCompressed !== 0) return diffCompressed
+
+    return (b.textSize + b.binarySize) - (a.textSize + a.binarySize)
+  })
+
+  const outPath = path.join(reportDir, 'commits_with_branches_and_sizes.json');
+  fs.writeFileSync(outPath, JSON.stringify(results, null, 2), 'utf8');
+
   return results;
 };

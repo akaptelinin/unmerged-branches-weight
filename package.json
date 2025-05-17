@@ -7,7 +7,8 @@
         "unmerged-branches-weight": "./bin/unmerged-branches-weight.js"
     },
     "scripts": {
-        "start": "unmerged-branches-weight"
+        "start": "node bin/unmerged-branches-weight.js",
+        "unmerged-branches-weight": "node bin/unmerged-branches-weight.js"
     },
     "dependencies": {
         "readline-sync": "^1.4.10"
