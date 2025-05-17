@@ -12,7 +12,7 @@ Over‑grown feature branches slow down `git clone` and waste storage.  Knowing 
 
 1. Collects all commits reachable from every remote branch.
 2. Adds commits that are reachable only via tags to a virtual branch called `$tags`.
-3. For each commit reads plain‑text and binary diff sizes and applies a rough compression factor (text ≈ 20 %, binary ≈ 80 %).
+3. For each commit reads plain‑text and binary diff sizes and applies a rough compression factor (text ≈ 20 %, binary ≈ 70 %).
 4. Sums the numbers per branch and sorts branches by estimated compressed size.
 
 ## Install
