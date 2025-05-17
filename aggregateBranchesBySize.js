@@ -4,7 +4,7 @@ const path = require('path')
 
 const inputPath = path.join(process.cwd(), 'unique-commits-with-branches-and-sizes.json')
 if (!fs.existsSync(inputPath)) {
-  console.error(`Файл не найден: ${inputPath}`)
+  console.error(`File not found: ${inputPath}`)
   process.exit(1)
 }
 const data = JSON.parse(fs.readFileSync(inputPath, 'utf8'))
@@ -33,7 +33,6 @@ for (const { commit, textSize, binarySize, branches, avgCompressedSize } of data
   }
 }
 
-// сортируем по убыванию медиа
 const full = Object.values(map)
   .map(b => ({
     branch: b.branch,
