@@ -1,8 +1,8 @@
-# unmerged-weight
+# unmerged-branches-weight
 
 ## Description
 
-**unmerged-weight** is a Node.js utility for estimating the approximate weight of unmerged branches in a Git repository. The library collects data on commits, text, and binary changes in branches and outputs a sorted statistic based on branch size. It also includes commits that belong only to tags, marked with the branch name `$tags`.
+**unmerged-branches-weight** is a Node.js utility for estimating the approximate weight of unmerged branches in a Git repository. The library collects data on commits, text, and binary changes in branches and outputs a sorted statistic based on branch size. It also includes commits that belong only to tags, marked with the branch name `$tags`.
 
 ### Key Features:
 
@@ -15,7 +15,7 @@
 ## Installation
 
 ```bash
-npm install -g unmerged-weight
+npm install -g unmerged-branches-weight
 ```
 
 ## Usage
@@ -25,7 +25,7 @@ npm install -g unmerged-weight
 In the root folder of the Git repository:
 
 ```bash
-unmerged-weight
+unmerged-branches-weight
 ```
 
 ### Output
