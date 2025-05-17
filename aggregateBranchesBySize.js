@@ -19,7 +19,6 @@ function calcCompressedSizeMB(size) {
   }
 }
 
-// агрегируем по веткам
 const map = {}
 for (const { commit, textSize, binarySize, branches, avgCompressedSize } of data) {
   for (const branch of branches ?? ["$tags"]) {

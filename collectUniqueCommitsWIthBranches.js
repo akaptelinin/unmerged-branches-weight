@@ -7,7 +7,7 @@ const path = require('path');
   const start = Date.now();
   const outFile = path.join(__dirname, 'unique-commits-with-branches.json');
   const MASTER = 'master';
-  const commitMap = new Map(); // hash -> Set<branches> или null (только тег)
+  const commitMap = new Map();
 
   const refs = execSync(
     'git for-each-ref --format="%(refname)" refs/heads refs/remotes',
