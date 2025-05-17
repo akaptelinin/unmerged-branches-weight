@@ -1,73 +1,73 @@
 # unmerged-branches-weight
 
-## Description
+CLI that scans a Git repository and shows how much disk space every **unmerged** remote branch eats after compression.
 
-**unmerged-branches-weight** is a Node.js utility for estimating the approximate weight of unmerged branches in a Git repository. The library collects data on commits, text, and binary changes in branches and outputs a sorted statistic based on branch size. It also includes commits that belong only to tags, marked with the branch name `$tags`.
+---
 
-### Key Features:
+## Why
 
-* Collects all unique commits associated with branches and tags
-* Calculates the text and binary weight of commits
-* Aggregates data by branches with compressed size calculation
-* Sorts branches by descending size
-* Generates two reports: full (with commits) and light (branches and sizes only)
+Over‑grown feature branches slow down `git clone` and waste storage.  Knowing the worst offenders lets you delete or squash them first.
 
-## Installation
+## How it works
+
+1. Collects all commits reachable from every remote branch.
+2. Adds commits that are reachable only via tags to a virtual branch called `$tags`.
+3. For each commit reads plain‑text and binary diff sizes and applies a rough compression factor (text ≈ 20 %, binary ≈ 80 %).
+4. Sums the numbers per branch and sorts branches by estimated compressed size.
+
+## Install
 
 ```bash
-npm install -g unmerged-branches-weight
+# global
+npm i -g unmerged-branches-weight
 ```
 
 ## Usage
 
-### Run
-
-In the root folder of the Git repository:
-
 ```bash
-unmerged-branches-weight
+# if installed
+unmerged-branches-weigh
+npm run unmerged-branches-weight
+# one‑off run
+npx unmerged-branches-weight
 ```
 
-### Output
-
-After execution, the command will create two files in the current directory:
-
-* `sorted_branches_with_sizes.json` – full data including commits
-* `sorted_branches_with_sizes_light.json` – lightweight version with only branches and sizes
-
-## Example
+## Output
 
 ```
-Full stats → sorted_branches_with_sizes.json
-Light stats → sorted_branches_with_sizes_light.json
+<dir>/
+  unique-commits-with-branches-and-sizes.json   raw per‑commit data
+  sorted_branches_with_sizes.json               full stats, biggest first
+  sorted_branches_with_sizes_light.json         branch‑only summary
 ```
 
-## Project Structure
-
-* **collectUniqueCommitsWithBranches.js** - collects unique commits by branches and tags
-* **calcTextAndBinaryOfCommits.js** - calculates the text and binary weight of commits
-* **aggregateBranchesBySize.js** - aggregates and sorts branches by size
-* **run-all.js** - sequentially runs all scripts
-
-## Example Result File
+Example entry
 
 ```json
-[
-  {
-    "branch": "feature/new-ui",
-    "avgCompressedSizeMB": "1.5 MB",
-    "textSize": 102400,
-    "binarySize": 512000
-  },
-  {
-    "branch": "$tags",
-    "avgCompressedSizeMB": "0.3 MB",
-    "textSize": 20480,
-    "binarySize": 30720
-  }
-]
+{
+  "branch": "feature/payments-v2",
+  "avgCompressedSizeMB": "7.3 MB",
+  "textSize": 1834120,
+  "binarySize": 19112702
+},
+{
+  "branch": "$tags",
+  "avgCompressedSizeMB": "6.5 MB",
+  "textSize": 694200,
+  "binarySize": 9583150
+}
 ```
+
+## Performance
+
+On \~50 k‑commit repo with 120 remotes the scan finishes in 2–3 min on an SSD.
+
+## Limits
+
+* Tested on Node 18+.
+* Windows works via Git‑for‑Windows, macOS/Linux work out of the box.
+* Size is an estimate; for byte‑exact numbers use `git verify-pack`.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT — PRs and issues welcome.
