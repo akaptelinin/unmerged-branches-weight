@@ -32,11 +32,11 @@ unmerged-branches-weight
 npm run unmerged-branches-weight
 
 Options
-  --repo, -r <path>   path to the Git repository (default = cwd)
-  --out, -o <path>    output directory for the report (default = <repo>/unmerged-branches-size-report)
-  --branch, -b <name> default branch name (master | main) (auto-detect if not provided)
-  --no-prompt, -y     run non‑interactively, use defaults when possible
-  --help, -h          show usage information
+  --repo, -r <path>   # path to the Git repository (default = cwd)
+  --out, -o <path>    # output directory for the report (default = <repo>/unmerged-branches-size-report)
+  --branch, -b <name> # default branch name (master | main) (auto-detect if not provided)
+  --no-prompt, -y     # run non‑interactively, use defaults when possible
+  --help, -h          # show usage information
 ```
 
 ## Output
