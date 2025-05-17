@@ -1,6 +1,6 @@
 {
     "name": "unmerged-branches-weight",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Estimate weight of unmerged Git branches",
     "main": "src/aggregate-branches-by-size.js",
     "bin": {
