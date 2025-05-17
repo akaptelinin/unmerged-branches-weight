@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const fs = require('fs');
+const readline = require('readline-sync');
+
+const collect = require('../src/collect-unique-commits-with-branches');
+const calc = require('../src/calc-text-and-binary-of-commits');
+const aggregate = require('../src/aggregate-branches-by-size');
+
+const cwd = process.cwd();
+const repoInput = readline.question(`Enter path to Git repo [${cwd}]: `);
+const repoPath = repoInput.trim() || cwd;
+
+const defaultReportDir = path.join(path.dirname(repoPath), 'unmerged-branches-size-report');
+const reportInput = readline.question(`Enter output folder path [${defaultReportDir}]: `);
+const reportDir = path.resolve(reportInput.trim() || defaultReportDir);
+
+if (!fs.existsSync(reportDir)) {
+  fs.mkdirSync(reportDir, { recursive: true });
+}
+
+console.log(`Repo: ${repoPath}`);
+console.log(`Report dir: ${reportDir}`);
+
+(async () => {
+  try {
+    const commits = await collect(repoPath);
+    const withSize = await calc(commits);
+    await aggregate(withSize, reportDir);
+    console.log('Report generated.');
+  } catch (err) {
+    console.error('Error:', err.message || err);
+    process.exit(1);
+  }
+})();

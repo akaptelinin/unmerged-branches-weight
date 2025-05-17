@@ -1,13 +1,16 @@
 {
     "name": "unmerged-branches-weight",
     "version": "1.0.0",
-    "description": "CLI tool to analyze the weight of unmerged branches in a Git repository",
-    "main": "start.js",
+    "description": "Estimate weight of unmerged Git branches",
+    "main": "src/aggregate-branches-by-size.js",
     "bin": {
-        "unmerged-branches-weight": "./start.js"
+        "unmerged-branches-weight": "./bin/unmerged-branches-weight.js"
     },
     "scripts": {
-        "start": "node start.js"
+        "start": "unmerged-branches-weight"
+    },
+    "dependencies": {
+        "readline-sync": "^1.4.10"
     },
     "keywords": [
         "git",
