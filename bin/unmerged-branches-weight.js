@@ -117,7 +117,7 @@ function promptDefaultBranch(repoPath) {
 
 // === main ===
 const repoPath   = promptRepoPath();
-const defaultDir = path.join(repoPath, 'unmerged-branches-size-report');
+const defaultDir = path.join(process.cwd(), 'unmerged-branches-size-report');
 const reportDir  = promptReportDir(defaultDir);
 const defaultBr  = promptDefaultBranch(repoPath);
 

@@ -10,13 +10,38 @@ const { spawnSync } = require('child_process');
  * @returns {Promise<Array<Object>>}
  */
 module.exports = async function calcTextAndBinaryOfCommits(commits, repoPath, reportDir) {
-  const getEstCompressedSize = (textSize, binarySize) => Math.floor(textSize * 0.2 + binarySize * 0.8);
-  const getEstCompressedSizeMBText = (textSize, binarySize) => {
-    const size = getEstCompressedSize(textSize, binarySize) / (1024 * 1024);
+  const guessCoef = file => {
+    const ext = path.extname(file).toLowerCase().replace('.', '');
+    const map = new Map([
+      [['js', 'ts', 'jsx', 'tsx', 'c', 'cpp', 'h', 'cs', 'java', 'kt', 'py', 'go', 'rb', 'php', 'rs', 'swift', 'lua', 'scala', 'css', 'scss', 'less', 'sass', 'html', 'htm', 'xml', 'json', 'yml', 'yaml', 'toml', 'ini', 'cfg', 'md', 'txt', 'csv', 'tsv', 'sql', 'log', 'sh', 'bat', 'dockerfile', 'makefile'], 0.25],
+      [['min.js', 'min.css'], 0.35],
+      [['svg'], 0.25],
+      [['exe', 'dll', 'so', 'dylib', 'a', 'o', 'obj', 'class', 'wasm'], 0.5],
+      [['pdf'], 0.6],
+      [['docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp'], 0.8],
+      [['zip', 'jar', 'rar', '7z', 'gz', 'bz2', 'xz', 'tgz', 'tar.gz', 'iso'], 1.0],
+      [['jpg', 'jpeg', 'jfif', 'heic', 'heif'], 0.95],
+      [['png', 'gif', 'webp', 'bmp', 'tiff', 'tif'], 0.9],
+      [['cr2', 'nef', 'dng', 'arw', 'rw2'], 0.75],
+      [['woff', 'woff2', 'ttf', 'otf', 'eot'], 0.85],
+      [['wav', 'aiff'], 0.6],
+      [['flac'], 0.65],
+      [['mp3', 'ogg', 'oga', 'aac', 'm4a', 'opus'], 0.98],
+      [['mp4', 'm4v', 'mov', 'mkv', 'webm', 'avi', 'wmv', 'flv'], 0.99],
+      [['bin', 'img'], 0.85],
+      [['parquet', 'orc'], 0.4],
+    ].flatMap(([exts, k]) => exts.map(e => [e, k])));
+    return map.get(ext) ?? 0.7;
+  };
+
+  const getEstCompressedSize = (textSize, binarySize, binaryCoef) => Math.floor(textSize * 0.2 + binarySize * binaryCoef);
+  const getEstCompressedSizeMBText = (estSize) => {
+    const size = estSize / (1024 * 1024);
     if (size >= 0.1) return size.toFixed(1) + ' MB';
     if (size >= 0.01) return size.toFixed(2) + ' MB';
     return '0 MB';
   };
+
   const avgLineSize = 40;
 
   console.log(`Commits amount: ${commits.length}`);
@@ -29,6 +54,7 @@ module.exports = async function calcTextAndBinaryOfCommits(commits, repoPath, re
 
     let textSize = 0;
     let binarySize = 0;
+    let estSize = 0;
     const gitOptions = { cwd: repoPath, encoding: 'utf8' };
 
     const diffOut = spawnSync(
@@ -50,15 +76,15 @@ module.exports = async function calcTextAndBinaryOfCommits(commits, repoPath, re
           const sizeOut = spawnSync('git', ['cat-file', '-s', `${commit}:${file}`], gitOptions);
           if (sizeOut.status === 0) {
             binarySize += parseInt(sizeOut.stdout.trim(), 10);
+            estSize += getEstCompressedSize(textSize, binarySize, guessCoef(file));
           }
         }
       }
     }
 
-    const est = getEstCompressedSize(textSize, binarySize);
-    const estMB = getEstCompressedSizeMBText(textSize, binarySize);
+    const estMB = getEstCompressedSizeMBText(estSize);
 
-    const result = { commit, estCompressedSize: est, estCompressedSizeMB: estMB, textSize, binarySize };
+    const result = { commit, estCompressedSize: estSize, estCompressedSizeMB: estMB, textSize, binarySize };
     if (branches) result.branches = branches;
 
     console.log(` -> estCompressedSize=${estMB} text=${textSize}B binary=${binarySize}B`);
@@ -69,7 +95,7 @@ module.exports = async function calcTextAndBinaryOfCommits(commits, repoPath, re
 
   console.log(`Done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
 
-  results.sort((a,b) => {
+  results.sort((a, b) => {
     const diffCompressed = b.estCompressedSize - a.estCompressedSize;
 
     if (diffCompressed !== 0) return diffCompressed
