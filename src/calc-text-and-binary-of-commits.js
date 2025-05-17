@@ -2,14 +2,19 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
+const updateLog = require('./update-log');
+
 /**
  * Calculate text and binary sizes for a list of commits.
  * @param {Array<{commit: string, branches?: string[]}>} commits
  * @param {string} repoPath - Path to the Git repository
  * @param {string} reportDir - Directory to write report files
+ * @param {number} [startTs] - Timestamp (ms) when script started; if omitted, uses now
  * @returns {Promise<Array<Object>>}
  */
-module.exports = async function calcTextAndBinaryOfCommits(commits, repoPath, reportDir) {
+module.exports = async function calcTextAndBinaryOfCommits(commits, repoPath, reportDir, startTs) {
+  const start = typeof startTs === 'number' ? startTs : Date.now();
+
   const guessCoef = file => {
     const ext = path.extname(file).toLowerCase().replace('.', '');
     const map = new Map([
@@ -34,29 +39,30 @@ module.exports = async function calcTextAndBinaryOfCommits(commits, repoPath, re
     return map.get(ext) ?? 0.7;
   };
 
-  const getEstCompressedSize = (textSize, binarySize, binaryCoef) => Math.floor(textSize * 0.2 + binarySize * binaryCoef);
-  const getEstCompressedSizeMBText = (estSize) => {
+  const getEstCompressedSize = (textSize, binarySize, binaryCoef) =>
+    Math.floor(textSize * 0.2 + binarySize * binaryCoef);
+  const getEstCompressedSizeMBText = estSize => {
     const size = estSize / (1024 * 1024);
     if (size >= 0.1) return size.toFixed(1) + ' MB';
     if (size >= 0.01) return size.toFixed(2) + ' MB';
     return '0 MB';
   };
-
   const avgLineSize = 40;
 
   console.log(`Commits amount: ${commits.length}`);
-  const start = Date.now();
   const results = [];
+
+  let totalTextSize = 0;
+  let totalBinarySize = 0;
+  let totalEstSize = 0;
 
   for (let i = 0; i < commits.length; i++) {
     const { commit, branches } = commits[i];
-    console.log(`[${i + 1}/${commits.length}] Processing ${commit}`);
 
     let textSize = 0;
     let binarySize = 0;
     let estSize = 0;
     const gitOptions = { cwd: repoPath, encoding: 'utf8' };
-
     const diffOut = spawnSync(
       'git',
       ['show', '--no-ext-diff', '--pretty=format:', '--numstat', '-M', commit],
@@ -71,37 +77,38 @@ module.exports = async function calcTextAndBinaryOfCommits(commits, repoPath, re
       if (/^\d+$/.test(added) && /^\d+$/.test(deleted)) {
         textSize += (parseInt(added, 10) + parseInt(deleted, 10)) * avgLineSize;
       } else if (added === '-' && deleted === '-') {
-        const existsInParent = spawnSync('git', ['cat-file', '-e', `${commit}^:${file}`], gitOptions).status === 0;
+        const existsInParent =
+          spawnSync('git', ['cat-file', '-e', `${commit}^:${file}`], gitOptions).status === 0;
         if (!existsInParent) {
           const sizeOut = spawnSync('git', ['cat-file', '-s', `${commit}:${file}`], gitOptions);
           if (sizeOut.status === 0) {
             binarySize += parseInt(sizeOut.stdout.trim(), 10);
-            estSize += getEstCompressedSize(textSize, binarySize, guessCoef(file));
+            estSize = getEstCompressedSize(textSize, binarySize, guessCoef(file));
           }
         }
       }
     }
 
     const estMB = getEstCompressedSizeMBText(estSize);
-
     const result = { commit, estCompressedSize: estSize, estCompressedSizeMB: estMB, textSize, binarySize };
     if (branches) result.branches = branches;
-
-    console.log(` -> estCompressedSize=${estMB} text=${textSize}B binary=${binarySize}B`);
-    const elapsed = ((Date.now() - start) / 1000).toFixed(2);
-    console.log(`${elapsed}s elapsed\n`);
     results.push(result);
+
+    totalTextSize += textSize;
+    totalBinarySize += binarySize;
+    totalEstSize += estSize;
+    const msg = ` ${commit} → estimate total compressed size=${getEstCompressedSizeMBText(totalEstSize)}, total text size=${textSize}B, total binary size=${binarySize}B`;
+    updateLog(msg, i + 1, commits.length, start);
   }
 
+  process.stdout.write('\n');
   console.log(`Done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
 
   results.sort((a, b) => {
-    const diffCompressed = b.estCompressedSize - a.estCompressedSize;
-
-    if (diffCompressed !== 0) return diffCompressed
-
-    return (b.textSize + b.binarySize) - (a.textSize + a.binarySize)
-  })
+    const diff = b.estCompressedSize - a.estCompressedSize;
+    if (diff !== 0) return diff;
+    return b.textSize + b.binarySize - (a.textSize + a.binarySize);
+  });
 
   const outPath = path.join(reportDir, 'commits_with_branches_and_sizes.json');
   fs.writeFileSync(outPath, JSON.stringify(results, null, 2), 'utf8');

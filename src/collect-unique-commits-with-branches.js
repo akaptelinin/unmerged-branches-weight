@@ -1,12 +1,16 @@
 const { execSync } = require('child_process');
 
+const updateLog = require('./update-log');
+
 /**
  * Collect unique commits with their branches for a given Git repository.
  * @param {string} repoPath - Path to the Git repository
+ * @param {string} defaultBr - Branch to exclude commits from
+ * @param {number} [startTs] - Timestamp (ms) when script started; if omitted, uses now
  * @returns {Promise<Array<{commit: string, branches?: string[]}>>}
  */
-module.exports = async function collectUniqueCommitsWithBranches(repoPath, defaultBr) {
-  const start = Date.now();
+module.exports = async function collectUniqueCommitsWithBranches(repoPath, defaultBr, startTs) {
+  const start = typeof startTs === 'number' ? startTs : Date.now();
   const commitMap = new Map();
 
   // Git options
@@ -22,12 +26,10 @@ module.exports = async function collectUniqueCommitsWithBranches(repoPath, defau
     .split('\n')
     .filter(r => r && !r.endsWith('/HEAD'));
 
-  // Collect commits unique to each branch
+  // Process each branch with single-line updating log
   refs.forEach((ref, i) => {
     const branch = ref.replace(/^refs\/(heads|remotes)\//, '');
-    console.log(`(${i + 1}/${refs.length}) Checking branch ${branch}`);
-    const elapsed = ((Date.now() - start) / 1000).toFixed(2);
-    console.log(`${elapsed}s elapsed\n`);
+    updateLog(`Checking branch ${branch}`, i + 1, refs.length, start);
 
     const out = execSync(
       `git rev-list ${ref} --not ${defaultBr} --no-merges`,
@@ -39,6 +41,9 @@ module.exports = async function collectUniqueCommitsWithBranches(repoPath, defau
       commitMap.get(hash).add(branch);
     });
   });
+
+  // finish log line
+  process.stdout.write('\n');
 
   // Exclude merge commits
   const mergeHashes = new Set(
@@ -62,7 +67,11 @@ module.exports = async function collectUniqueCommitsWithBranches(repoPath, defau
   // Build result array
   const result = [];
   for (const [commit, branches] of commitMap) {
-    result.push(branches === null ? { commit } : { commit, branches: Array.from(branches) });
+    result.push(
+      branches === null
+        ? { commit }
+        : { commit, branches: Array.from(branches) }
+    );
   }
 
   return result;

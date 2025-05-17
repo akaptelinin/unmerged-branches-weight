@@ -129,11 +129,16 @@ const collect   = require('../src/collect-unique-commits-with-branches');
 const calc      = require('../src/calc-text-and-binary-of-commits');
 const aggregate = require('../src/aggregate-branches-by-size');
 
+const start = Date.now();
+
 (async () => {
   try {
-    const commits  = await collect(repoPath, defaultBr);
-    const withSize = await calc(commits, repoPath, reportDir);
+    const commits  = await collect(repoPath, defaultBr, start);
+    const withSize = await calc(commits, repoPath, reportDir, start);
     await aggregate(withSize, reportDir);
+
+    const elapsed = ((Date.now() - start) / 1000).toFixed(2);
+    console.log(`Done in ${elapsed}s`);
   } catch (err) {
     console.error('Error:', err.message || err);
     console.error('If this keeps happening, make sure the repo is valid and try again.\n');
