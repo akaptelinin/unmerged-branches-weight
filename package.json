@@ -8,7 +8,8 @@
     },
     "scripts": {
         "start": "node bin/unmerged-branches-weight.js",
-        "unmerged-branches-weight": "node bin/unmerged-branches-weight.js"
+        "unmerged-branches-weight": "node bin/unmerged-branches-weight.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
     },
     "dependencies": {
         "readline-sync": "^1.4.10"
