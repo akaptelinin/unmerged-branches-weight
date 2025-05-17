@@ -4,7 +4,7 @@
     "description": "Estimate weight of unmerged Git branches",
     "main": "src/aggregate-branches-by-size.js",
     "bin": {
-        "unmerged-branches-weight": "./bin/unmerged-branches-weight.js"
+        "unmerged-branches-weight": "bin/unmerged-branches-weight.js"
     },
     "scripts": {
         "start": "node bin/unmerged-branches-weight.js",
@@ -25,7 +25,7 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/akaptelinin/unmerged-branches-weight.git"
+        "url": "git+https://github.com/akaptelinin/unmerged-branches-weight.git"
     },
     "bugs": {
         "url": "https://github.com/akaptelinin/unmerged-branches-weight/issues"
