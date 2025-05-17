@@ -25,11 +25,11 @@ npm i -g unmerged-branches-weight
 ## Usage
 
 ```bash
+# one‑off run
+npx unmerged-branches-weight
 # if installed
 unmerged-branches-weigh
 npm run unmerged-branches-weight
-# one‑off run
-npx unmerged-branches-weight
 ```
 
 ## Output
@@ -60,7 +60,8 @@ Example entry
 
 ## Performance
 
-On \~50 k‑commit repo with 120 remotes the scan finishes in 2–3 min on an SSD.
+On \~5k commit repo with 250 remotes and 3k unmerged commits the scan finishes in 3-4 min on an SSD.
+On \~200k commit repo with 4k remotes and 22k unmerged commits the scan finishes in 15-20 min on an SSD.
 
 ## Limits
 
