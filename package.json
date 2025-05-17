@@ -1,0 +1,32 @@
+{
+    "name": "unmerged-branches-weight",
+    "version": "1.0.0",
+    "description": "CLI tool to analyze the weight of unmerged branches in a Git repository",
+    "main": "start.js",
+    "bin": {
+        "unmerged-branches-weight": "./start.js"
+    },
+    "scripts": {
+        "start": "node start.js"
+    },
+    "keywords": [
+        "git",
+        "branches",
+        "analysis",
+        "cli",
+        "unmerged"
+    ],
+    "author": "akaptelinin",
+    "license": "MIT",
+    "dependencies": {
+        "yargs": "^17.7.2"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/akaptelinin/unmerged-branches-weight.git"
+    },
+    "bugs": {
+        "url": "https://github.com/akaptelinin/unmerged-branches-weight/issues"
+    },
+    "homepage": "https://github.com/akaptelinin/unmerged-branches-weight"
+}
