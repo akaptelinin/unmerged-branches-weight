@@ -67,8 +67,9 @@ Example entry
 
 ## Performance
 
-On \~5k commit repo with 250 remotes and 3k unmerged commits the scan finishes in 3-4 min on an SSD.
-On \~200k commit repo with 4k remotes and 22k unmerged commits the scan finishes in 15-20 min on an SSD.
+On \~5k commit repo with 250 remotes and 3k unmerged commits the scan finishes in 3-4 min on an SSD
+
+On \~200k commit repo with 4k remotes and 22k unmerged commits the scan finishes in 15-20 min on an SSD
 
 ## Limits
 
