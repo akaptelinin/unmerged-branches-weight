@@ -12,7 +12,7 @@ Over‑grown feature branches slow down `git clone` and waste storage.  Knowing 
 
 1. Collects all commits reachable from every remote branch.
 2. Adds commits that are reachable only via tags to a virtual branch called `$tags`.
-3. Calculates diff sizes per commit – text at 20%, binary at ~70% (depends on extension, see [code](./src/calc-text-and-binary-of-commits.js#L18)).
+3. Calculates compressed diff size in bytes per commit. Compression factor: text - 20%, binary - ~70% (depends on extension, see [code](./src/calc-text-and-binary-of-commits.js#L18)).
 4. Sums the numbers per branch and sorts branches by estimated compressed size.
 
 ## Install
