@@ -53,10 +53,10 @@ module.exports = async function aggregateBranchesBySize(data, reportDir) {
     textSize: b.textSize,
     binarySize: b.binarySize,
   }));
-
+  
   // Write reports
-  const outFull = path.join(reportDir, 'branches_with_sizes.json');
-  const outLight = path.join(reportDir, 'branches_with_commits_and_sizes.json');
+  const outFull = path.join(reportDir, 'branches_with_commits_and_sizes.json');
+  const outLight = path.join(reportDir, 'branches_with_sizes.json');
   fs.writeFileSync(outFull, JSON.stringify(full, null, 2), 'utf8');
   fs.writeFileSync(outLight, JSON.stringify(light, null, 2), 'utf8');
 
