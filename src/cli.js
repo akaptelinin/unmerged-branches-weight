@@ -16,12 +16,12 @@
  */
 
 const path = require('path');
-const fs   = require('fs');
+const fs = require('fs');
 const readline = require('readline-sync');
 const { execSync } = require('child_process');
 
-const collect   = require('./collect-unique-commits-with-branches');
-const calc      = require('./calc-text-and-binary-of-commits');
+const collect = require('./collect-unique-commits-with-branches');
+const calc = require('./calc-text-and-binary-of-commits');
 const aggregate = require('./aggregate-branches-by-size');
 const isSafePath = require('./is-safe-path');
 
@@ -97,11 +97,15 @@ function validateRepoPath(repoPath) {
     console.error(`Error: "${repoPath}" is not a directory.`);
     process.exit(1);
   }
-  const gitDir = path.join(repoPath, '.git');
-  if (!fs.existsSync(gitDir) || !fs.statSync(gitDir).isDirectory()) {
-    console.error(`Error: "${repoPath}" is not a Git repository (no .git folder).`);
+
+  try {
+    execSync('git rev-parse --is-inside-work-tree', { cwd: repoPath, stdio: 'ignore' });
+  } catch {
+    console.error(`Error: "${repoPath}" is not inside a Git working tree.`);
+    console.error('Provide a path to a folder initialized with "git init" or cloned.\n');
     process.exit(1);
   }
+
   return repoPath;
 }
 
@@ -189,12 +193,15 @@ function promptRepoPath() {
       console.error('Make sure you point to the Git repo root folder.\n');
       continue;
     }
-    const gitDir = path.join(repoPath, '.git');
-    if (!fs.existsSync(gitDir) || !fs.statSync(gitDir).isDirectory()) {
-      console.error(`Error: "${repoPath}" is not a Git repository (no .git folder).`);
+
+    try {
+      execSync('git rev-parse --is-inside-work-tree', { cwd: repoPath, stdio: 'ignore' });
+    } catch {
+      console.error(`Error: "${repoPath}" is not inside a Git working tree.`);
       console.error('Provide a path to a folder initialized with "git init" or cloned.\n');
-      continue;
+      process.exit(1);
     }
+
     return repoPath;
   }
 }
@@ -275,15 +282,15 @@ function promptDefaultBranch(repoPath) {
 
 // ───────────────────────── main ──────────────────────────
 const args = parseArgs();
-const cwd  = process.cwd();
+const cwd = process.cwd();
 
-const repoPath   = args.repo
+const repoPath = args.repo
   ? validateRepoPath(args.repo)
   : (args.noPrompt ? validateRepoPath(cwd) : promptRepoPath());
 
 const defaultDir = path.join(cwd, 'unmerged-branches-size-report');
 
-const reportDir  = args.out
+const reportDir = args.out
   ? validateReportDir(args.out)
   : (args.noPrompt ? validateReportDir(defaultDir) : promptReportDir(defaultDir));
 
@@ -309,7 +316,7 @@ const start = Date.now();
 
 (async () => {
   try {
-    const commits  = await collect(repoPath, defaultBr, start);
+    const commits = await collect(repoPath, defaultBr, start);
     const withSize = await calc(commits, repoPath, reportDir, start);
     await aggregate(withSize, reportDir);
 
